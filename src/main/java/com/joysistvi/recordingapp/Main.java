@@ -5,7 +5,10 @@ import com.joysistvi.recordingapp.controller.AuthController;
 import com.joysistvi.recordingapp.controller.SongController;
 import com.joysistvi.recordingapp.repository.SongRepository;
 import com.joysistvi.recordingapp.repository.UserRepository;
+import com.joysistvi.recordingapp.view.ConsoleApp;
 import com.joysistvi.recordingapp.view.ConsoleView;
+
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -21,14 +24,6 @@ public class Main {
                 view
         );
 
-        // Examples:
-        // authController.registerUser("josiah", "password123");
-        // authController.loginUser("josiah", "password123");
-        // songController.createSong("New Song", "03:30", "OPM", 1);
-        // songController.searchSong("OPM");
-        // songController.archiveSong(1);
-        // songController.restoreSong(1);
-
-        songController.showSongs();
+        new ConsoleApp(authController, songController, new Scanner(System.in)).run();
     }
 }

@@ -1,9 +1,11 @@
 package com.joysistvi.recordingapp.controller;
 
+import com.joysistvi.recordingapp.model.User;
 import com.joysistvi.recordingapp.repository.UserRepository;
 import com.joysistvi.recordingapp.view.ConsoleView;
 
 import java.sql.SQLException;
+import java.util.Optional;
 
 public class AuthController {
     private final UserRepository userRepository;
@@ -35,18 +37,22 @@ public class AuthController {
     }
 
     public boolean loginUser(String username, String password) {
+        return authenticate(username, password).isPresent();
+    }
+
+    public Optional<User> authenticate(String username, String password) {
         if (hasBlankCredentials(username, password)) {
             view.displayMessage("Username and password are required");
-            return false;
+            return Optional.empty();
         }
 
         try {
-            boolean authenticated = userRepository.loginUser(username, password);
-            view.displayMessage(authenticated ? "Login successful" : "Invalid username or password");
-            return authenticated;
+            Optional<User> user = userRepository.authenticate(username, password);
+            view.displayMessage(user.isPresent() ? "Login successful" : "Invalid username or password");
+            return user;
         } catch (SQLException exception) {
             view.displayError("Unable to log in: " + exception.getMessage());
-            return false;
+            return Optional.empty();
         }
     }
 

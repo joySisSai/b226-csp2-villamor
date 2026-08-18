@@ -1,12 +1,14 @@
 package com.joysistvi.recordingapp.repository;
 
 import com.joysistvi.recordingapp.config.DbConnection;
+import com.joysistvi.recordingapp.model.User;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Optional;
 
 public class UserRepository {
     private static final int BCRYPT_COST = 12;
@@ -34,8 +36,8 @@ public class UserRepository {
         }
     }
 
-    public boolean loginUser(String username, String password) throws SQLException {
-        String query = "SELECT password FROM users WHERE username = ?";
+    public Optional<User> authenticate(String username, String password) throws SQLException {
+        String query = "SELECT id, username, password, role FROM users WHERE username = ?";
 
         try (Connection connection = dbConnection.connect();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -43,17 +45,28 @@ public class UserRepository {
 
             try (ResultSet result = statement.executeQuery()) {
                 if (!result.next()) {
-                    return false;
+                    return Optional.empty();
                 }
 
                 String passwordHash = result.getString("password");
                 try {
-                    return BCrypt.checkpw(password, passwordHash);
+                    if (!BCrypt.checkpw(password, passwordHash)) {
+                        return Optional.empty();
+                    }
+                    return Optional.of(new User(
+                            result.getInt("id"),
+                            result.getString("username"),
+                            User.Role.fromDatabase(result.getString("role"))
+                    ));
                 } catch (IllegalArgumentException exception) {
-                    return false;
+                    return Optional.empty();
                 }
             }
         }
+    }
+
+    public boolean loginUser(String username, String password) throws SQLException {
+        return authenticate(username, password).isPresent();
     }
 
     private boolean usernameExists(String username) throws SQLException {
