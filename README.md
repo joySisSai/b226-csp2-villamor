@@ -40,28 +40,20 @@ provide the data-access boundary.
 - MySQL
 - Database named `recording_app`
 
-Required tables:
-
-```sql
-CREATE TABLE users (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
-);
-```
-
-The existing `songs` table must contain:
-
-```text
-id, title, length, genre, album_id, isArchived
-```
+Create the required tables by running [`database/schema.sql`](database/schema.sql).
+The schema is intended for a fresh setup and includes the required account role.
 
 ## Run
 
-1. Start MySQL and create the `recording_app` database.
+1. Start MySQL and run `database/schema.sql`.
 2. Check the credentials in `DbConnection.java`.
 3. Open the project in IntelliJ IDEA.
 4. Run `com.joysistvi.recordingapp.Main`.
+5. Register an account in the app. To make it an administrator, run:
+
+   ```sql
+   UPDATE users SET role = 'ADMIN' WHERE username = 'your_username';
+   ```
 
 ## Main features
 
@@ -69,18 +61,22 @@ id, title, length, genre, album_id, isArchived
 - Archive and restore songs
 - Register users with BCrypt password hashing
 - Authenticate users with BCrypt verification
+- Keep running until the user chooses Exit
+- Separate User and Admin dashboards after login
+- Validate menu input and display useful feedback instead of terminating
 
 ## Use-case roadmap
 
 The project structure follows the supplied User/Admin use-case diagram.
 
-Implemented foundation:
+Implemented:
 
 - Shared login
 - User registration
 - Browse active songs
 - Search songs
-- Admin-ready song management operations
+- User dashboard for browsing and searching active songs
+- Admin dashboard for creating, updating, archiving, restoring, and deleting songs
 
 Planned modules:
 
@@ -90,15 +86,6 @@ Planned modules:
 - Create, view, and delete playlists
 - Add and remove songs from playlists
 
-The current `users` table has only `id`, `username`, and `password`. That is
-enough for registration and login, but it cannot distinguish an Admin from a
-regular User. Before role-based menus are implemented, add a constrained role
-column:
-
-```sql
-ALTER TABLE users
-ADD role ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER';
-```
-
-Admin authorization must be enforced by the controllers, not merely by hiding
-admin menu options in the view.
+New registrations receive the `USER` role. Administrator promotion is an
+explicit database operation so public registration cannot create privileged
+accounts.

@@ -47,8 +47,7 @@ public class SongController {
     }
 
     public boolean createSong(String title, String length, String genre, int albumId) {
-        if (hasBlankSongField(title, length, genre)) {
-            view.displayMessage("Title, length, and genre are required");
+        if (!isValidSong(title, length, genre, albumId)) {
             return false;
         }
 
@@ -74,8 +73,11 @@ public class SongController {
             String genre,
             int albumId
     ) {
-        if (hasBlankSongField(title, length, genre)) {
-            view.displayMessage("Title, length, and genre are required");
+        if (songId <= 0) {
+            view.displayMessage("Song ID must be a positive number");
+            return false;
+        }
+        if (!isValidSong(title, length, genre, albumId)) {
             return false;
         }
 
@@ -96,6 +98,10 @@ public class SongController {
     }
 
     public boolean deleteSong(int songId) {
+        if (songId <= 0) {
+            view.displayMessage("Song ID must be a positive number");
+            return false;
+        }
         try {
             boolean deleted = songRepository.deleteSong(songId);
             view.displayMessage(deleted ? "Song deleted successfully" : "Song was not found");
@@ -107,6 +113,10 @@ public class SongController {
     }
 
     public boolean archiveSong(int songId) {
+        if (songId <= 0) {
+            view.displayMessage("Song ID must be a positive number");
+            return false;
+        }
         try {
             boolean archived = songRepository.archiveSong(songId);
             view.displayMessage(
@@ -122,6 +132,10 @@ public class SongController {
     }
 
     public boolean restoreSong(int songId) {
+        if (songId <= 0) {
+            view.displayMessage("Song ID must be a positive number");
+            return false;
+        }
         try {
             boolean restored = songRepository.restoreSong(songId);
             view.displayMessage(
@@ -136,9 +150,20 @@ public class SongController {
         }
     }
 
-    private boolean hasBlankSongField(String title, String length, String genre) {
-        return title == null || title.isBlank()
-                || length == null || length.isBlank()
-                || genre == null || genre.isBlank();
+    private boolean isValidSong(String title, String length, String genre, int albumId) {
+        if (title == null || title.isBlank() || length == null || length.isBlank()
+                || genre == null || genre.isBlank()) {
+            view.displayMessage("Title, length, and genre are required");
+            return false;
+        }
+        if (!length.trim().matches("\\d{1,2}:[0-5]\\d")) {
+            view.displayMessage("Length must use MM:SS format (for example, 03:30)");
+            return false;
+        }
+        if (albumId <= 0) {
+            view.displayMessage("Album ID must be a positive number");
+            return false;
+        }
+        return true;
     }
 }
